@@ -1,13 +1,16 @@
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { StyleSheet, View } from "react-native";
 import { RootStackParamList } from "../types/navigation";
-import { useEffect } from "react";
+import { useContext, useEffect } from "react";
 import IconButton from "../components/UI/IconButton";
 import { GlobalStyles } from "../utils/styles";
 import Button from "../components/UI/Button";
+import { ExpensesContext } from "../store/expenses-context";
 type Props = NativeStackScreenProps<RootStackParamList, "ManageExpense">;
 
 export default function ManageExpense({ route, navigation }: Props) {
+  const expensesCtx = useContext(ExpensesContext);
+
   const editedExpenseId = route.params?.expenseId;
   const isEditing = !!editedExpenseId; //converts to boolean
 
@@ -18,6 +21,9 @@ export default function ManageExpense({ route, navigation }: Props) {
   }, [navigation, isEditing]);
 
   function deleteExpenseHandler() {
+    if (editedExpenseId) {
+      expensesCtx.deleteExpense(editedExpenseId);
+    }
     navigation.goBack();
   }
 
@@ -26,6 +32,19 @@ export default function ManageExpense({ route, navigation }: Props) {
   }
 
   function confirmHandler() {
+    if (isEditing) {
+      expensesCtx.updateExpense(editedExpenseId, {
+        description: "Test!!",
+        amount: 29.99,
+        date: new Date("2022-05-20"),
+      });
+    } else {
+      expensesCtx.addExpense({
+        description: "Test",
+        amount: 19.99,
+        date: new Date("2025-07-19"),
+      });
+    }
     navigation.goBack();
   }
 
