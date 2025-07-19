@@ -7,5 +7,5 @@ export type RootBottomParamList = {
 
 export type RootStackParamList = {
   ExpensesOverview: NavigatorScreenParams<RootBottomParamList>;
-  ManageExpense: undefined;
+  ManageExpense: { expenseId?: string } | undefined;
 };

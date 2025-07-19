@@ -3,18 +3,20 @@ import { GlobalStyles } from "../../utils/styles";
 import { useNavigation } from "@react-navigation/native";
 import { RootStackParamList } from "../../types/navigation";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
+import Expense from "../../types/expense";
 
-type Props = {
-  description: string;
-  date: Date;
-  amount: number;
-};
-
-export default function ExpenseItem({ description, date, amount }: Props) {
+export default function ExpenseItem({
+  id,
+  description,
+  date,
+  amount,
+}: Expense) {
   const navigation =
     useNavigation<NativeStackNavigationProp<RootStackParamList>>();
   function expensePressHandler() {
-    navigation.navigate("ManageExpense");
+    navigation.navigate("ManageExpense", {
+      expenseId: id,
+    });
   }
   return (
     <Pressable

@@ -7,7 +7,7 @@ import {
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import { Ionicons } from "@expo/vector-icons";
 
-import ManageExpenses from "./screens/ManageExpenses";
+import ManageExpense from "./screens/ManageExpense";
 import RecentExpenses from "./screens/RecentExpenses";
 import AllExpenses from "./screens/AllExpenses";
 import { RootBottomParamList, RootStackParamList } from "./types/navigation";
@@ -91,7 +91,7 @@ export default function App() {
           />
           <Stack.Screen
             name="ManageExpense"
-            component={ManageExpenses}
+            component={ManageExpense}
             options={{ presentation: "modal" }}
           />
         </Stack.Navigator>
