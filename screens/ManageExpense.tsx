@@ -2,18 +2,24 @@ import { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { StyleSheet, View } from "react-native";
 import { RootStackParamList } from "../types/navigation";
 import { useEffect } from "react";
-import { useDispatch } from "react-redux";
-import { AppDispatch } from "../redux/store";
+import { useDispatch, useSelector } from "react-redux";
+import { AppDispatch, RootState } from "../redux/store";
 import IconButton from "../components/UI/IconButton";
 import { GlobalStyles } from "../utils/styles";
-import Button from "../components/UI/Button";
 import { addExpense, deleteExpense, updateExpense } from "../redux/expenses";
+import ExpenseForm from "../components/ManageExpense/ExpenseForm";
+import ExpenseData from "../types/expense-data";
 type Props = NativeStackScreenProps<RootStackParamList, "ManageExpense">;
 
 export default function ManageExpense({ route, navigation }: Props) {
   const dispatch = useDispatch<AppDispatch>();
   const editedExpenseId = route.params?.expenseId;
   const isEditing = !!editedExpenseId; //converts to boolean
+
+  const expenses = useSelector((state: RootState) => state.myExpenses.expenses);
+  const selectedExpense = expenses.find(
+    (expense) => expense.id === editedExpenseId
+  );
 
   useEffect(() => {
     navigation.setOptions({
@@ -32,15 +38,14 @@ export default function ManageExpense({ route, navigation }: Props) {
     navigation.goBack();
   }
 
-  function confirmHandler() {
+  function confirmHandler(expenseData: ExpenseData) {
     if (isEditing) {
       dispatch(
         updateExpense({
           id: editedExpenseId,
           expenseData: {
-            description: "Test!!",
-            amount: 29.99,
-            date: new Date("2022-05-20").toISOString(),
+            ...expenseData,
+            date: expenseData.date.toISOString(),
           },
         })
       );
@@ -48,9 +53,8 @@ export default function ManageExpense({ route, navigation }: Props) {
       dispatch(
         addExpense({
           expenseData: {
-            description: "Test",
-            amount: 19.99,
-            date: new Date("2025-07-19").toISOString(),
+            ...expenseData,
+            date: expenseData.date.toISOString(),
           },
         })
       );
@@ -60,14 +64,13 @@ export default function ManageExpense({ route, navigation }: Props) {
 
   return (
     <View style={styles.container}>
-      <View style={styles.buttons}>
-        <Button mode="flat" style={styles.button} onPress={cancelHandler}>
-          Cancel
-        </Button>
-        <Button style={styles.button} onPress={confirmHandler}>
-          {isEditing ? "Update" : "Add"}
-        </Button>
-      </View>
+      <ExpenseForm
+        onCancel={cancelHandler}
+        isEditing={isEditing}
+        onSubmit={confirmHandler}
+        defaultValues={selectedExpense}
+      />
+
       {isEditing && (
         <View style={styles.deleteContainer}>
           <IconButton
@@ -94,14 +97,5 @@ const styles = StyleSheet.create({
     borderTopColor: GlobalStyles.colors.primary200,
     borderTopWidth: 2,
     alignItems: "center",
-  },
-  buttons: {
-    flexDirection: "row",
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  button: {
-    minWidth: 120,
-    marginHorizontal: 8,
   },
 });
