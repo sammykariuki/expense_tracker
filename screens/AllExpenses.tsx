@@ -1,7 +1,15 @@
-import ExpensesOutput, {
-  DUMMY_EXPENSES,
-} from "../components/ExpensesOutput/ExpensesOutput";
+import ExpensesOutput from "../components/ExpensesOutput/ExpensesOutput";
+
+import { RootState } from "../redux/store";
+import { useSelector } from "react-redux";
 
 export default function AllExpenses() {
-  return <ExpensesOutput expenses={DUMMY_EXPENSES} expensesPeriod="Total" />;
+  const expenses = useSelector((state: RootState) => state.myExpenses.expenses);
+  return (
+    <ExpensesOutput
+      expenses={expenses}
+      expensesPeriod="Total"
+      fallback="No registered Expenses found"
+    />
+  );
 }

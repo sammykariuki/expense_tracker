@@ -28,7 +28,9 @@ export default function ExpenseItem({
           <Text style={[styles.textBase, styles.description]}>
             {description}
           </Text>
-          <Text style={styles.textBase}>{date.toLocaleDateString()}</Text>
+          <Text style={styles.textBase}>
+            {new Date(date).toLocaleDateString()}
+          </Text>
         </View>
         <View style={styles.amountContainer}>
           <Text style={styles.amount}>{amount.toFixed(2)}</Text>
