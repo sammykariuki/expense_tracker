@@ -1,7 +1,7 @@
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { StyleSheet, View } from "react-native";
 import { RootStackParamList } from "../types/navigation";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { AppDispatch, RootState } from "../redux/store";
 import IconButton from "../components/UI/IconButton";
@@ -9,6 +9,13 @@ import { GlobalStyles } from "../utils/styles";
 import { addExpense, deleteExpense, updateExpense } from "../redux/expenses";
 import ExpenseForm from "../components/ManageExpense/ExpenseForm";
 import ExpenseData from "../types/expense-data";
+import {
+  deleteBackEndExpense,
+  storeExpense,
+  updateBackEndExpense,
+} from "../utils/http";
+import LoadingOverlay from "../components/UI/LoadingOverlay";
+import ErrorOverlay from "../components/UI/ErrorOverlay";
 type Props = NativeStackScreenProps<RootStackParamList, "ManageExpense">;
 
 export default function ManageExpense({ route, navigation }: Props) {
@@ -21,45 +28,95 @@ export default function ManageExpense({ route, navigation }: Props) {
     (expense) => expense.id === editedExpenseId
   );
 
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [error, setError] = useState<string | undefined>();
+  const [lastAction, setLastAction] = useState<
+    null | "add" | "update" | "delete"
+  >(null);
+  const [lastData, setLastData] = useState<ExpenseData | null>(null);
   useEffect(() => {
     navigation.setOptions({
       title: isEditing ? "Edit Expense" : "Add Expense",
     });
   }, [navigation, isEditing]);
 
-  function deleteExpenseHandler() {
+  async function deleteExpenseHandler() {
     if (editedExpenseId) {
-      dispatch(deleteExpense({ id: editedExpenseId }));
+      setIsSubmitting(true);
+      setLastAction("delete");
+      try {
+        await deleteBackEndExpense(editedExpenseId);
+        dispatch(deleteExpense({ id: editedExpenseId }));
+        navigation.goBack();
+      } catch (error) {
+        setError("Could not delete expense");
+        setIsSubmitting(false);
+      }
     }
-    navigation.goBack();
   }
 
   function cancelHandler() {
     navigation.goBack();
   }
 
-  function confirmHandler(expenseData: ExpenseData) {
+  async function confirmHandler(expenseData: ExpenseData) {
+    setIsSubmitting(true);
+    setLastData(expenseData);
     if (isEditing) {
-      dispatch(
-        updateExpense({
-          id: editedExpenseId,
-          expenseData: {
-            ...expenseData,
-            date: expenseData.date.toISOString(),
-          },
-        })
-      );
+      setLastAction("update");
+      try {
+        await updateBackEndExpense(editedExpenseId, expenseData);
+        dispatch(
+          updateExpense({
+            id: editedExpenseId,
+            expenseData: {
+              ...expenseData,
+              date: expenseData.date.toISOString(),
+            },
+          })
+        );
+        navigation.goBack();
+      } catch (error) {
+        setError("Could not update expense");
+        setIsSubmitting(false);
+      }
     } else {
-      dispatch(
-        addExpense({
-          expenseData: {
-            ...expenseData,
-            date: expenseData.date.toISOString(),
-          },
-        })
-      );
+      setLastAction("add");
+      try {
+        const id = await storeExpense(expenseData);
+        dispatch(
+          addExpense({
+            expenseData: {
+              ...expenseData,
+              date: expenseData.date.toISOString(),
+              id: id,
+            },
+          })
+        );
+        navigation.goBack();
+      } catch (error) {
+        setError("Could not Add Expense");
+        setIsSubmitting(false);
+      }
     }
-    navigation.goBack();
+  }
+  function errorHandler() {
+    setError(undefined);
+
+    if (lastAction === "delete") {
+      deleteExpenseHandler();
+    } else if (lastAction === "add" && lastData) {
+      confirmHandler(lastData);
+    } else if (lastAction === "update" && lastData) {
+      confirmHandler(lastData);
+    }
+  }
+
+  if (error && !isSubmitting) {
+    return <ErrorOverlay message={error} onConfirm={errorHandler} />;
+  }
+  if (isSubmitting) {
+    return <LoadingOverlay />;
   }
 
   return (
