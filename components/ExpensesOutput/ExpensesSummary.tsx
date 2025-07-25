@@ -14,7 +14,7 @@ export default function ExpensesSummary({ expenses, periodName }: Props) {
   return (
     <View style={styles.container}>
       <Text style={styles.period}>{periodName}</Text>
-      <Text style={styles.sum}>${expensesSum.toFixed(2)}</Text>
+      <Text style={styles.sum}>Kes {expensesSum.toFixed(2)}</Text>
     </View>
   );
 }
