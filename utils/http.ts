@@ -1,7 +1,7 @@
 import axios from "axios";
 import ExpenseData from "../types/expense-data";
 
-const BACKEND_URL = "https://expense-tracker-702c2-default-rtdb.firebaseio.com";
+const BACKEND_URL = process.env.EXPO_FIREBASE_REALTIMEDATABASE_URL;
 
 export async function storeExpense(expenseData: ExpenseData) {
   const response = await axios.post(
